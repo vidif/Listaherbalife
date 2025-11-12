@@ -27,7 +27,7 @@
     .product p { margin-bottom: 4px; font-size: 0.85em; color: #444; }
     .quantity-control { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
     .quantity-control input { width: 50px; text-align: center; border: 1px solid #003087; border-radius: 5px; padding: 6px; font-weight: 500; font-size: 0.9em; }
-    .quantity-control button { width: 30px; height: 30px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; }
+    .quantity-control button { width: 30px; height: 30px; background: #003087; color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     .quantity-control button:hover { background: #d4a017; }
 
     .summary { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #003087; margin-bottom: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
@@ -37,8 +37,10 @@
     .quantity-group { display: flex; align-items: center; gap: 6px; }
     .quantity-input-inline { width: 50px; padding: 5px; text-align: center; border: 1px solid #003087; border-radius: 5px; font-weight: 500; font-size: 0.9em; }
     .pv-total-inline { font-weight: bold; color: #003087; white-space: nowrap; font-size: 0.85em; }
-    .toggle-details-btn { background: #003087; color: white; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.75em; cursor: pointer; font-weight: 500; }
-    .toggle-details-btn:hover { background: #d4a017; }
+    .btn-qty { width: 28px; height: 28px; background: #003087; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+    .btn-qty:hover { background: #d4a017; }
+    .btn-details { background: #e9ecef; color: #003087; border: 1px solid #003087; padding: 4px 10px; border-radius: 5px; font-size: 0.75em; cursor: pointer; font-weight: 500; }
+    .btn-details:hover { background: #d4d4d4; }
     .summary-item-details { padding: 10px; background: #fff; border-top: 1px dashed #ccc; font-size: 0.85em; line-height: 1.5; }
     .summary-item-details p { margin: 4px 0; }
 
@@ -109,7 +111,7 @@
         <div class="summary-item-header">
           <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
           <div class="quantity-group">
-            <button @click="decrease(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">−</button>
+            <button @click="decrease(item)" class="btn-qty">−</button>
             <input 
               type="number" 
               :value="item.quantity" 
@@ -119,11 +121,11 @@
               class="quantity-input-inline" 
               min="0"
             >
-            <button @click="increase(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">+</button>
+            <button @click="increase(item)" class="btn-qty">+</button>
           </div>
           <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
-          <button class="toggle-details-btn" @click="toggle(item.SKU)">
-            {{ expanded.includes(item.SKU) ? '−' : '+' }}
+          <button class="btn-details" @click="toggle(item.SKU)">
+            {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
           </button>
         </div>
         <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
@@ -159,7 +161,7 @@
           <div class="summary-item-header">
             <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
             <div class="quantity-group">
-              <button @click="decrease(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">−</button>
+              <button @click="decrease(item)" class="btn-qty">−</button>
               <input 
                 type="number" 
                 :value="item.quantity" 
@@ -169,11 +171,11 @@
                 class="quantity-input-inline" 
                 min="0"
               >
-              <button @click="increase(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">+</button>
+              <button @click="increase(item)" class="btn-qty">+</button>
             </div>
             <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
-            <button class="toggle-details-btn" @click="toggle(item.SKU)">
-              {{ expanded.includes(item.SKU) ? '−' : '+' }}
+            <button class="btn-details" @click="toggle(item.SKU)">
+              {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
             </button>
           </div>
           <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
@@ -262,17 +264,14 @@
           const originalQty = item.quantity;
           let newQty = this.tempQty[item.SKU];
 
-          // Si no se cambió nada, no hacer nada
           if (newQty === undefined) {
             delete this.tempQty[item.SKU];
             return;
           }
 
-          // Si está vacío, tratar como 0
           if (newQty === '') newQty = 0;
           newQty = Math.max(0, parseInt(newQty) || 0);
 
-          // Solo actualizar si cambió
           if (newQty !== originalQty) {
             item.quantity = newQty;
             this.sync(item);
@@ -320,7 +319,7 @@
           }
         }
       },
-               mounted() { this.load(); }
+      mounted() { this.load(); }
     }).mount('#app');
   </script>
 </body>
