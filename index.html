@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Pedidos Herbalife</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #333;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #003087;
+      font-size: 2em;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .header-actions button {
+      padding: 8px 15px;
+      background-color: #003087;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+
+    .header-actions button:hover {
+      background-color: #d4a017;
+    }
+
+    .pv-total {
+      text-align: center;
+      padding: 10px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: #003087;
+      font-weight: 500;
+    }
+
+    .search-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 10px 30px 10px 10px;
+      border: 2px solid #003087;
+      border-radius: 8px;
+      background-color: #ffffff;
+      color: #333;
+    }
+
+    .clear-search {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #003087;
+      font-size: 1.2em;
+      cursor: pointer;
+      display: none;
+    }
+
+    .clear-search.visible {
+      display: block;
+    }
+
+    .clear-search-btn {
+      display: block;
+      margin: 5px auto 0;
+      padding: 5px 10px;
+      background-color: #003087;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .clear-search-btn.visible {
+      display: block;
+    }
+
+    .clear-search-btn:hover {
+      background-color: #d4a017;
+    }
+
+    .categories {
+      margin-bottom: 20px;
+    }
+
+    .category-select {
+      width: 100%;
+      padding: 12px;
+      background-color: #e9ecef;
+      border: 2px solid #003087;
+      border-radius: 8px;
+      color: #003087;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .category-select option {
+      background-color: #ffffff;
+      color: #333;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+      overflow-y: auto;
+    }
+
+    .products.active {
+      display: grid;
+    }
+
+    .product {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #003087;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .product h3 {
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      color: #003087;
+      font-weight: 500;
+    }
+
+    .product p {
+      margin-bottom: 5px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .quantity-control input {
+      width: 50px;
+      padding: 8px;
+      background-color: #ffffff;
+      color: #333;
+      border: 1px solid #003087;
+      border-radius: 5px;
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+
+    .quantity-control input:focus {
+      border-color: #d4a017;
+      outline: none;
+    }
+
+    .quantity-control button {
+      width: 30px;
+      height: 30px;
+      background-color: #003087;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quantity-control button:hover {
+      background-color: #d4a017;
+    }
+
+    .summary {
+      background-color: #e9ecef;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #003087;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .summary h2 {
+      margin-bottom: 15px;
+      color: #003087;
+      font-weight: 500;
+    }
+
+    .summary p {
+      margin-bottom: 8px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .summary .quantity-input {
+      width: 50px;
+      padding: 5px;
+      background-color: #ffffff;
+      color: #333;
+      border: 1px solid #003087;
+      border-radius: 5px;
+      text-align: center;
+      margin-left: 5px;
+    }
+
+    .view-summary-btn {
+      display: block;
+      padding: 10px 20px;
+      background-color: #003087;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .view-summary-btn:hover {
+      background-color: #d4a017;
+    }
+
+    .scroll-to-top-btn {
+      display: block;
+      padding: 10px 20px;
+      background-color: #003087;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .scroll-to-top-btn:hover {
+      background-color: #d4a017;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 20px;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      position: relative;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 15px;
+      color: #003087;
+      font-weight: 500;
+    }
+
+    .modal-content p {
+      margin-bottom: 8px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .modal-content .quantity-input {
+      width: 50px;
+      padding: 5px;
+      background-color: #ffffff;
+      color: #333;
+      border: 1px solid #003087;
+      border-radius: 5px;
+      text-align: center;
+      margin-left: 5px;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: #333;
+      z-index: 1001;
+    }
+
+    @media (max-width: 768px) {
+      .products {
+        grid-template-columns: 1fr;
+        max-height: none;
+        overflow-y: visible;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .modal-content {
+        width: 95%;
+        max-height: 90vh;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <h1>Simulador de Pedidos Herbalife</h1>
+    <div class="header-actions">
+      <button @click="clearCart">Vaciar Carrito</button>
+      <button @click="openModal">Ver Resumen Detallado</button>
+    </div>
+    <div class="pv-total">Total P.V.: {{ totalPV.toFixed(2) }} P.V.</div>
+
+    <div class="search-container">
+      <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar por nombre de producto..." @keyup.enter="searchAndClear">
+      <button v-if="searchQuery" class="clear-search visible" @click="clearSearch">×</button>
+      <button v-if="searchQuery" class="clear-search-btn visible" @click="clearSearch">Limpiar Búsqueda</button>
+    </div>
+    <div class="categories">
+      <select v-model="selectedCategory" class="category-select" @change="toggleProductsAndClearSearch">
+        <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+      </select>
+    </div>
+    <div class="products" :class="{ active: productsVisible }">
+      <div v-for="product in filteredAndSearchedProducts" :key="product.SKU" class="product">
+        <h3>{{ product.NOMBRE_DEL_PRODUCTO }} {{ product.SABOR ? `- ${product.SABOR}` : '' }}</h3>
+        <p><strong>SKU:</strong> {{ product.SKU }}</p>
+        <p><strong>P.V.:</strong> {{ product.PV.toFixed(2) }}</p>
+        <p><strong>Base de Ganancia:</strong> ${{ product.BASE_DE_GANANCIA.toFixed(2) }}</p>
+        <p><strong>Precio Sugerido:</strong> ${{ product.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }}</p>
+        <p><strong>25%:</strong> ${{ product['0.25'].toFixed(2) }}</p>
+        <p><strong>35%:</strong> ${{ product['0.35'].toFixed(2) }}</p>
+        <p><strong>42%:</strong> ${{ product['0.42'].toFixed(2) }}</p>
+        <p><strong>50%:</strong> ${{ product['0.50'].toFixed(2) }}</p>
+        <p><strong>Categoría:</strong> {{ product.CATEGORIA }}</p>
+        <div class="quantity-control">
+          <button @click="decreaseQuantity(product)">−</button>
+          <input type="number" v-model.number="product.quantity" min="0" @input="updateQuantityInput(product)" @blur="finalizeQuantityEdit(product)" placeholder="Cantidad">
+          <button @click="increaseQuantity(product)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary" id="summary-section">
+      <h2>Resumen del Pedido</h2>
+      <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
+      <p v-for="item in selectedProducts" :key="item.SKU">
+        <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR ? item.SABOR : 'Sin sabor' }})</strong> - 
+        Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input" @input="updateQuantityInput(item)" @blur="finalizeQuantityEdit(item)"> | 
+        <strong>P.V. Total: {{ (item.quantity || 0) * item.PV.toFixed(2) }}</strong> | 
+        Base Ganancia: ${{ (item.quantity || 0) * item.BASE_DE_GANANCIA.toFixed(2) }} | 
+        Precio Sug.: ${{ (item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }} | 
+        25%: ${{ (item.quantity || 0) * item['0.25'].toFixed(2) }} | 
+        35%: ${{ (item.quantity || 0) * item['0.35'].toFixed(2) }} | 
+        42%: ${{ (item.quantity || 0) * item['0.42'].toFixed(2) }} | 
+        50%: ${{ (item.quantity || 0) * item['0.50'].toFixed(2) }}
+      </p>
+      <h3>Totales Generales:</h3>
+      <p><strong>Puntos de Volumen Total:</strong> {{ totalPV.toFixed(2) }} P.V.</p>
+      <p><strong>Total Base de Ganancia:</strong> ${{ totalBase.toFixed(2) }}</p>
+      <p><strong>Total Precio Sugerido:</strong> ${{ totalSuggested.toFixed(2) }}</p>
+      <p><strong>Total 25%:</strong> ${{ total025.toFixed(2) }}</p>
+      <p><strong>Total 35%:</strong> ${{ total035.toFixed(2) }}</p>
+      <p><strong>Total 42%:</strong> ${{ total042.toFixed(2) }}</p>
+      <p><strong>Total 50%:</strong> ${{ total050.toFixed(2) }}</p>
+    </div>
+
+    <button class="view-summary-btn" @click="openModal">Ver Resumen Detallado</button>
+    <button class="scroll-to-top-btn" @click="scrollToTop">Subir al Inicio</button>
+
+    <!-- Modal -->
+    <div class="modal" :class="{ active: showModal }">
+      <div class="modal-content">
+        <span class="close-modal" @click="closeModal">×</span>
+        <h2>Resumen del Pedido</h2>
+        <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
+        <div v-for="item in selectedProducts" :key="item.SKU" class="item-details">
+          <p>
+            <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR ? item.SABOR : 'Sin sabor' }})</strong> - 
+            Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input" @input="updateQuantityInput(item)" @blur="finalizeQuantityEdit(item)"> | 
+            <strong>P.V. Total: {{ (item.quantity || 0) * item.PV.toFixed(2) }}</strong> | 
+            Base Ganancia: ${{ (item.quantity || 0) * item.BASE_DE_GANANCIA.toFixed(2) }} | 
+            Precio Sug.: ${{ (item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }} | 
+            25%: ${{ (item.quantity || 0) * item['0.25'].toFixed(2) }} | 
+            35%: ${{ (item.quantity || 0) * item['0.35'].toFixed(2) }} | 
+            42%: ${{ (item.quantity || 0) * item['0.42'].toFixed(2) }} | 
+            50%: ${{ (item.quantity || 0) * item['0.50'].toFixed(2) }}
+          </p>
+        </div>
+        <h3>Totales Generales:</h3>
+        <p><strong>Puntos de Volumen Total:</strong> {{ totalPV.toFixed(2) }} P.V.</p>
+        <p><strong>Total Base de Ganancia:</strong> ${{ totalBase.toFixed(2) }}</p>
+        <p><strong>Total Precio Sugerido:</strong> ${{ totalSuggested.toFixed(2) }}</p>
+        <p><strong>Total 25%:</strong> ${{ total025.toFixed(2) }}</p>
+        <p><strong>Total 35%:</strong> ${{ total035.toFixed(2) }}</p>
+        <p><strong>Total 42%:</strong> ${{ total042.toFixed(2) }}</p>
+        <p><strong>Total 50%:</strong> ${{ total050.toFixed(2) }}</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, reactive } = Vue;
+
+    createApp({
+      data() {
+        return {
+          selectedCategory: 'BATIDOS',
+          searchQuery: '',
+          productsVisible: true,
+          products: [], // Inicializamos como array vacío
+          showModal: false,
+          selectedProductSKUs: [], // Lista para rastrear los SKUs de productos seleccionados
+          emptyFieldTimeouts: {}, // Objeto para rastrear temporizadores de campos vacíos
+        };
+      },
+      computed: {
+        categories() {
+          return [...new Set(this.products.map((product) => product.CATEGORIA))];
+        },
+        filteredAndSearchedProducts() {
+          let categoryProducts = this.products.filter((product) =>
+            product.CATEGORIA === this.selectedCategory
+          );
+
+          if (!this.searchQuery) {
+            return categoryProducts; // Si no hay búsqueda, mostrar solo los productos de la categoría
+          }
+
+          const searchTerm = this.removeAccents(this.searchQuery.toLowerCase().trim());
+          const searchResults = this.products.filter((product) => {
+            const fullName = `${product.NOMBRE_DEL_PRODUCTO} ${product.SABOR || ''}`;
+            const normalizedFullName = this.removeAccents(fullName.toLowerCase());
+            return normalizedFullName.includes(searchTerm);
+          });
+
+          const remainingCategoryProducts = categoryProducts.filter((product) =>
+            !searchResults.includes(product)
+          );
+
+          return [...searchResults, ...remainingCategoryProducts];
+        },
+        selectedProducts() {
+          // Mostrar productos que están en selectedProductSKUs
+          return this.products.filter((product) => this.selectedProductSKUs.includes(product.SKU));
+        },
+        totalPV() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item.PV), 0);
+        },
+        totalBase() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item.BASE_DE_GANANCIA), 0);
+        },
+        totalSuggested() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO), 0);
+        },
+        total025() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item['0.25']), 0);
+        },
+        total035() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item['0.35']), 0);
+        },
+        total042() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item['0.42']), 0);
+        },
+        total050() {
+          return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item['0.50']), 0);
+        }
+      },
+      methods: {
+        removeAccents(str) {
+          return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        },
+        toggleProductsAndClearSearch() {
+          this.searchQuery = '';
+          this.productsVisible = true;
+        },
+        searchAndClear() {
+          this.searchQuery = '';
+        },
+        clearSearch() {
+          this.searchQuery = '';
+        },
+        increaseQuantity(product) {
+          product.quantity = (product.quantity || 0) + 1;
+          this.updateProductSelection(product);
+        },
+        decreaseQuantity(product) {
+          product.quantity = Math.max(0, (product.quantity || 0) - 1);
+          this.updateProductSelection(product);
+        },
+        updateQuantityInput(product) {
+          // Cancelar temporizador existente si lo hay
+          if (this.emptyFieldTimeouts[product.SKU]) {
+            clearTimeout(this.emptyFieldTimeouts[product.SKU]);
+            delete this.emptyFieldTimeouts[product.SKU];
+          }
+
+          // Si el campo está vacío, iniciar un temporizador de 30 segundos
+          if (product.quantity === null || product.quantity === undefined || product.quantity === '') {
+            console.log('Iniciando temporizador para SKU:', product.SKU); // Depuración
+            this.emptyFieldTimeouts[product.SKU] = setTimeout(() => {
+              console.log('Temporizador ejecutado para SKU:', product.SKU); // Depuración
+              product.quantity = 0; // Cambiar a 0 después de 30 segundos
+              this.updateProductSelection(product); // Actualizar selección para eliminar si es 0
+            }, 30000); // 30 segundos
+          } else if (product.quantity > 0) {
+            // Si el usuario ingresa un valor mayor a 0, actualizar selección inmediatamente
+            this.updateProductSelection(product);
+          }
+        },
+        finalizeQuantityEdit(product) {
+          // No cancelar el temporizador si el campo está vacío, permitir que continúe
+          if (product.quantity === 0) {
+            const index = this.selectedProductSKUs.indexOf(product.SKU);
+            if (index !== -1) {
+              this.selectedProductSKUs.splice(index, 1);
+              product.quantity = 0; // Asegurar que la cantidad sea 0
+            }
+          } else if (product.quantity > 0 && !this.selectedProductSKUs.includes(product.SKU)) {
+            this.selectedProductSKUs.push(product.SKU);
+          }
+          this.updateSummary();
+        },
+        updateProductSelection(product) {
+          // Actualizar selección al usar botones o al finalizar edición
+          if (product.quantity > 0 && !this.selectedProductSKUs.includes(product.SKU)) {
+            this.selectedProductSKUs.push(product.SKU);
+          } else if (product.quantity === 0 || product.quantity === null || product.quantity === undefined) {
+            const index = this.selectedProductSKUs.indexOf(product.SKU);
+            if (index !== -1) {
+              this.selectedProductSKUs.splice(index, 1);
+            }
+          }
+          this.updateSummary();
+        },
+        updateSummary() {
+          this.products = [...this.products]; // Forzar reactividad
+        },
+        clearCart() {
+          // Limpiar todas las cantidades y el resumen
+          this.products.forEach((product) => {
+            product.quantity = 0;
+          });
+          this.selectedProductSKUs = [];
+          // Cancelar todos los temporizadores activos
+          Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
+            clearTimeout(this.emptyFieldTimeouts[sku]);
+            delete this.emptyFieldTimeouts[sku];
+          });
+          this.updateSummary();
+        },
+        scrollToTop() {
+          // Desplazar al inicio de la página
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        async loadProductsFromJSON() {
+          try {
+            const response = await fetch('products.json');
+            if (!response.ok) {
+              throw new Error(`Error al cargar products.json: ${response.status} ${response.statusText}`);
+            }
+            const data = await response.json();
+            this.products = reactive(data.map((product) => ({
+              SKU: product.SKU || '',
+              NOMBRE_DEL_PRODUCTO: product.NOMBRE_DEL_PRODUCTO || '',
+              SABOR: product.SABOR || '',
+              PV: parseFloat(product.PV) || 0,
+              BASE_DE_GANANCIA: parseFloat(product.BASE_DE_GANANCIA) || 0,
+              PRECIO_DE_VENTA_SUGERIDO: parseFloat(product.PRECIO_DE_VENTA_SUGERIDO) || 0,
+              '0.25': parseFloat(product['0.25']) || 0,
+              '0.35': parseFloat(product['0.35']) || 0,
+              '0.42': parseFloat(product['0.42']) || 0,
+              '0.50': parseFloat(product['0.50']) || 0,
+              CATEGORIA: product.CATEGORIA || 'BATIDOS',
+              quantity: parseInt(product.quantity, 10) || 0
+            })));
+            console.log('Productos cargados:', this.products);
+          } catch (error) {
+            console.error("Error al cargar products.json:", error);
+          }
+        },
+        openModal() {
+          console.log('Abriendo modal, showModal antes:', this.showModal);
+          this.showModal = true;
+          history.pushState({ modalOpen: true }, document.title, window.location.href);
+          console.log('showModal después:', this.showModal);
+        },
+        closeModal() {
+          console.log('Cerrando modal');
+          this.showModal = false;
+          // Cancelar todos los temporizadores al cerrar el modal
+          Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
+            clearTimeout(this.emptyFieldTimeouts[sku]);
+            delete this.emptyFieldTimeouts[sku];
+          });
+        },
+        handleBeforeUnload(event) {
+          if (this.selectedProductSKUs.length > 0) {
+            event.preventDefault();
+            event.returnValue = 'Tienes un pedido en curso. ¿Seguro que quieres salir y perder los datos?';
+            return event.returnValue;
+          }
+        },
+        handleBackNavigation(event) {
+          if (this.showModal) {
+            this.closeModal();
+            history.pushState({ modalOpen: false }, document.title, window.location.href);
+          }
+        }
+      },
+      mounted() {
+        this.loadProductsFromJSON();
+        this.toggleProductsAndClearSearch();
+        window.addEventListener('popstate', this.handleBackNavigation);
+        history.pushState({ modalOpen: false }, document.title, window.location.href);
+        window.addEventListener('beforeunload', this.handleBeforeUnload);
+      },
+      beforeUnmount() {
+        window.removeEventListener('popstate', this.handleBackNavigation);
+        window.removeEventListener('beforeunload', this.handleBeforeUnload);
+        // Limpiar todos los temporizadores al desmontar el componente
+        Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
+          clearTimeout(this.emptyFieldTimeouts[sku]);
+        });
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
