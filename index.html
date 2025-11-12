@@ -7,339 +7,45 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Roboto', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+    body { background: #fff; color: #333; padding: 20px; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { text-align: center; color: #003087; font-size: 2em; margin-bottom: 10px; }
+    .header-actions { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+    .header-actions button { padding: 8px 15px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    .header-actions button:hover { background: #d4a017; }
+    .pv-total { text-align: center; padding: 10px; background: #e9ecef; border-radius: 8px; margin-bottom: 20px; color: #003087; }
+    .search-container { position: relative; margin-bottom: 20px; }
+    .search-bar { width: 100%; padding: 10px 35px 10px 10px; border: 2px solid #003087; border-radius: 8px; }
+    .clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #003087; font-size: 1.2em; cursor: pointer; display: none; }
+    .clear-search.visible { display: block; }
+    .categories { margin-bottom: 20px; }
+    .category-select { width: 100%; padding: 12px; background: #e9ecef; border: 2px solid #003087; border-radius: 8px; color: #003087; }
+    .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+    .product { background: #e9ecef; padding: 15px; border-radius: 8px; border: 1px solid #003087; }
+    .product h3 { color: #003087; margin-bottom: 10px; }
+    .product p { font-size: 0.9em; color: #555; margin-bottom: 5px; }
+    .quantity-control { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
+    .quantity-control input { width: 50px; text-align: center; border: 1px solid #003087; border-radius: 5px; padding: 8px; }
+    .quantity-control button { width: 30px; height: 30px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    .quantity-control button:hover { background: #d4a017; }
 
-    body {
-      background-color: #ffffff;
-      color: #333;
-      padding: 20px;
-      min-height: 100vh;
-    }
+    .summary { background: #e9ecef; padding: 20px; border-radius: 8px; border: 1px solid #003087; margin-bottom: 20px; }
+    .summary h2 { color: #003087; margin-bottom: 15px; }
+    .summary-item { margin-bottom: 12px; background: #f8f9fa; border: 1px solid #003087; border-radius: 6px; overflow: hidden; }
+    .summary-item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: #e9ecef; font-size: 0.95em; }
+    .quantity-input-inline { width: 50px; padding: 4px; text-align: center; border: 1px solid #003087; border-radius: 4px; }
+    .pv-total-inline { font-weight: bold; color: #003087; }
+    .toggle-details-btn { background: #003087; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; cursor: pointer; }
+    .toggle-details-btn:hover { background: #d4a017; }
+    .summary-item-details { padding: 10px; background: #fff; border-top: 1px dashed #ccc; font-size: 0.9em; }
+    .view-summary-btn, .scroll-to-top-btn { display: block; padding: 10px 20px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin: 10px auto; }
+    .view-summary-btn:hover, .scroll-to-top-btn:hover { background: #d4a017; }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-      color: #003087;
-      font-size: 2em;
-      font-weight: 700;
-    }
-
-    .header-actions {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .header-actions button {
-      padding: 8px 15px;
-      background-color: #003087;
-      color: #ffffff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      font-weight: 500;
-    }
-
-    .header-actions button:hover {
-      background-color: #d4a017;
-    }
-
-    .pv-total {
-      text-align: center;
-      padding: 10px;
-      background-color: #e9ecef;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      color: #003087;
-      font-weight: 500;
-    }
-
-    .search-container {
-      position: relative;
-      margin-bottom: 20px;
-    }
-
-    .search-bar {
-      width: 100%;
-      padding: 10px 30px 10px 10px;
-      border: 2px solid #003087;
-      border-radius: 8px;
-      background-color: #ffffff;
-      color: #333;
-    }
-
-    .clear-search {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #003087;
-      font-size: 1.2em;
-      cursor: pointer;
-      display: none;
-    }
-
-    .clear-search.visible {
-      display: block;
-    }
-
-    .clear-search-btn {
-      display: block;
-      margin: 5px auto 0;
-      padding: 5px 10px;
-      background-color: #003087;
-      color: #ffffff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      display: none;
-    }
-
-    .clear-search-btn.visible {
-      display: block;
-    }
-
-    .clear-search-btn:hover {
-      background-color: #d4a017;
-    }
-
-    .categories {
-      margin-bottom: 20px;
-    }
-
-    .category-select {
-      width: 100%;
-      padding: 12px;
-      background-color: #e9ecef;
-      border: 2px solid #003087;
-      border-radius: 8px;
-      color: #003087;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    .category-select option {
-      background-color: #ffffff;
-      color: #333;
-    }
-
-    .products {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .product {
-      background-color: #e9ecef;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #003087;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .product h3 {
-      font-size: 1.1em;
-      margin-bottom: 10px;
-      color: #003087;
-      font-weight: 500;
-    }
-
-    .product p {
-      margin-bottom: 5px;
-      font-size: 0.9em;
-      color: #555;
-    }
-
-    .quantity-control {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 10px;
-    }
-
-    .quantity-control input {
-      width: 50px;
-      padding: 8px;
-      background-color: #ffffff;
-      color: #333;
-      border: 1px solid #003087;
-      border-radius: 5px;
-      text-align: center;
-    }
-
-    .quantity-control input:focus {
-      border-color: #d4a017;
-      outline: none;
-    }
-
-    .quantity-control button {
-      width: 30px;
-      height: 30px;
-      background-color: #003087;
-      color: #ffffff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .quantity-control button:hover {
-      background-color: #d4a017;
-    }
-
-    /* RESUMEN COMPACTO CON + MÁS DETALLES */
-    .summary {
-      background-color: #e9ecef;
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #003087;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-
-    .summary h2 {
-      margin-bottom: 15px;
-      color: #003087;
-      font-weight: 500;
-    }
-
-    .summary-item {
-      margin-bottom: 12px;
-      background-color: #f8f9fa;
-      border: 1px solid #003087;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .summary-item-header {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px;
-      background-color: #e9ecef;
-      font-size: 0.95em;
-    }
-
-    .quantity-input-inline {
-      width: 50px;
-      padding: 4px 6px;
-      border: 1px solid #003087;
-      border-radius: 4px;
-      text-align: center;
-      font-size: 0.9em;
-    }
-
-    .pv-total-inline {
-      font-weight: bold;
-      color: #003087;
-      white-space: nowrap;
-    }
-
-    .toggle-details-btn {
-      background-color: #003087;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 0.8em;
-      cursor: pointer;
-    }
-
-    .toggle-details-btn:hover {
-      background-color: #d4a017;
-    }
-
-    .summary-item-details {
-      padding: 10px;
-      background-color: #fff;
-      border-top: 1px dashed #ccc;
-      font-size: 0.9em;
-    }
-
-    .summary-item-details p {
-      margin: 4px 0;
-    }
-
-    .view-summary-btn, .scroll-to-top-btn {
-      display: block;
-      padding: 10px 20px;
-      background-color: #003087;
-      color: #ffffff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 10px auto;
-    }
-
-    .view-summary-btn:hover, .scroll-to-top-btn:hover {
-      background-color: #d4a017;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 20px;
-      overflow-y: auto;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      position: relative;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 1.5em;
-      cursor: pointer;
-      color: #333;
-    }
-
-    @media (max-width: 768px) {
-      .products { grid-template-columns: 1fr; }
-      .summary-item-header { flex-direction: column; align-items: flex-start; }
-      .pv-total-inline { white-space: normal; }
-    }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 20px; }
+    .modal.active { display: flex; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; }
+    .close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; color: #333; }
   </style>
 </head>
 <body>
@@ -349,104 +55,86 @@
       <button @click="clearCart">Vaciar Carrito</button>
       <button @click="openModal">Ver Resumen Detallado</button>
     </div>
-    <div class="pv-total">Total P.V.: {{ totalPV.toFixed(2) }} P.V.</div>
+    <div class="pv-total">Total P.V.: {{ totalPV | toFixed }} P.V.</div>
 
     <div class="search-container">
-      <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar..." @keyup.enter="clearSearch">
-      <button v-if="searchQuery" class="clear-search visible" @click="clearSearch">×</button>
-      <button v-if="searchQuery" class="clear-search-btn visible" @click="clearSearch">Limpiar</button>
+      <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar...">
+      <button v-if="searchQuery" class="clear-search visible" @click="searchQuery = ''">×</button>
     </div>
 
     <div class="categories">
-      <select v-model="selectedCategory" class="category-select" @change="onCategoryChange">
+      <select v-model="selectedCategory" class="category-select">
         <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
       </select>
     </div>
 
     <div class="products">
-      <div v-for="product in displayedProducts" :key="product.SKU" class="product">
-        <h3>{{ product.NOMBRE_DEL_PRODUCTO }} {{ product.SABOR ? `- ${product.SABOR}` : '' }}</h3>
-        <p><strong>SKU:</strong> {{ product.SKU }}</p>
-        <p><strong>P.V.:</strong> {{ product.PV.toFixed(2) }}</p>
-        <p><strong>Base:</strong> ${{ product.BASE_DE_GANANCIA.toFixed(2) }}</p>
-        <p><strong>Sugerido:</strong> ${{ product.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }}</p>
+      <div v-for="p in displayedProducts" :key="p.SKU" class="product">
+        <h3>{{ p.NOMBRE_DEL_PRODUCTO }} {{ p.SABOR ? `- ${p.SABOR}` : '' }}</h3>
+        <p><strong>SKU:</strong> {{ p.SKU }}</p>
+        <p><strong>P.V.:</strong> {{ p.PV | toFixed }}</p>
+        <p><strong>Base:</strong> ${{ p.BASE_DE_GANANCIA | toFixed }}</p>
+        <p><strong>Sugerido:</strong> ${{ p.PRECIO_DE_VENTA_SUGERIDO | toFixed }}</p>
         <div class="quantity-control">
-          <button @click="decrease(product)">−</button>
-          <input type="number" v-model.number="product.quantity" min="0" @input="updateQty(product)">
-          <button @click="increase(product)">+</button>
+          <button @click="decrease(p)">−</button>
+          <input type="number" v-model.number="p.quantity" min="0" @input="sync(p)">
+          <button @click="increase(p)">+</button>
         </div>
       </div>
     </div>
 
-    <!-- RESUMEN CON + MÁS DETALLES -->
     <div class="summary">
       <h2>Resumen del Pedido</h2>
       <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
-
       <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
         <div class="summary-item-header">
           <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong> -
-          Cantidad:
-          <input type="number" v-model.number="item.quantity" min="0" class="quantity-input-inline" @input="updateQty(item)">
-          <span class="pv-total-inline">| P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed(2) }}</span>
-          <button class="toggle-details-btn" @click="toggleDetails(item.SKU)">
-            {{ expandedItems.includes(item.SKU) ? '− Menos' : '+ Más detalles' }}
+          Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input-inline" @input="sync(item)">
+          <span class="pv-total-inline">| P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed }}</span>
+          <button class="toggle-details-btn" @click="toggle(item.SKU)">
+            {{ expanded.includes(item.SKU) ? '− Menos' : '+ Más detalles' }}
           </button>
         </div>
-
-        <div v-if="expandedItems.includes(item.SKU)" class="summary-item-details">
-          <p><strong>Base (unit.):</strong> ${{ item.BASE_DE_GANANCIA | toFixed(2) }}</p>
-          <p><strong>Sug. (unit.):</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed(2) }}</p>
-          <p><strong>25%:</strong> ${{ item['0.25'] | toFixed(2) }}</p>
-          <p><strong>35%:</strong> ${{ item['0.35'] | toFixed(2) }}</p>
-          <p><strong>42%:</strong> ${{ item['0.42'] | toFixed(2) }}</p>
-          <p><strong>50%:</strong> ${{ item['0.50'] | toFixed(2) }}</p>
+        <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
+          <p><strong>Base:</strong> ${{ item.BASE_DE_GANANCIA | toFixed }}</p>
+          <p><strong>Sugerido:</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed }}</p>
+          <p><strong>25%:</strong> ${{ item['0.25'] | toFixed }}</p>
+          <p><strong>35%:</strong> ${{ item['0.35'] | toFixed }}</p>
+          <p><strong>42%:</strong> ${{ item['0.42'] | toFixed }}</p>
+          <p><strong>50%:</strong> ${{ item['0.50'] | toFixed }}</p>
         </div>
       </div>
-
       <h3>Totales Generales:</h3>
-      <p><strong>Puntos de Volumen Total:</strong> {{ totalPV.toFixed(2) }} P.V.</p>
-      <p><strong>Total Base de Ganancia:</strong> ${{ totalBase.toFixed(2) }}</p>
-      <p><strong>Total Precio Sugerido:</strong> ${{ totalSuggested.toFixed(2) }}</p>
-      <p><strong>Total 25%:</strong> ${{ total025.toFixed(2) }}</p>
-      <p><strong>Total 35%:</strong> ${{ total035.toFixed(2) }}</p>
-      <p><strong>Total 42%:</strong> ${{ total042.toFixed(2) }}</p>
-      <p><strong>Total 50%:</strong> ${{ total050.toFixed(2) }}</p>
+      <p><strong>P.V. Total:</strong> {{ totalPV | toFixed }} P.V.</p>
+      <p><strong>Base Total:</strong> ${{ totalBase | toFixed }}</p>
+      <p><strong>Sugerido Total:</strong> ${{ totalSuggested | toFixed }}</p>
     </div>
 
     <button class="view-summary-btn" @click="openModal">Ver Resumen Detallado</button>
-    <button class="scroll-to-top-btn" @click="scrollToTop">Subir al Inicio</button>
+    <button class="scroll-to-top-btn" @click="scrollToTop">Subir</button>
 
-    <!-- MODAL -->
     <div class="modal" :class="{ active: showModal }">
       <div class="modal-content">
         <span class="close-modal" @click="closeModal">×</span>
         <h2>Resumen Detallado</h2>
-        <div v-for="item in selectedProducts" :key="item.SKU">
-          <p>
-            <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong> -
-            Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input" @input="updateQty(item)"> |
-            P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed(2) }}
-          </p>
+        <div v-for="i in selectedProducts" :key="i.SKU">
+          <p><strong>{{ i.NOMBRE_DEL_PRODUCTO }}</strong> - Cant: {{ i.quantity }} - P.V.: {{ (i.quantity * i.PV) | toFixed }}</p>
         </div>
-        <h3>Totales:</h3>
-        <p><strong>Total P.V.:</strong> {{ totalPV.toFixed(2) }}</p>
       </div>
     </div>
   </div>
 
   <script>
     const { createApp } = Vue;
-
     createApp({
       data() {
         return {
-          selectedCategory: 'BATIDOS',
-          searchQuery: '',
           products: [],
-          showModal: false,
-          selectedProductSKUs: [],
-          expandedItems: []
+          selectedCategory: '',
+          searchQuery: '',
+          selectedSKUs: [],
+          expanded: [],
+          showModal: false
         };
       },
       computed: {
@@ -454,84 +142,62 @@
           return [...new Set(this.products.map(p => p.CATEGORIA))].sort();
         },
         displayedProducts() {
-          let list = this.products.filter(p => p.CATEGORIA === this.selectedCategory);
           if (this.searchQuery) {
-            const term = this.searchQuery.toLowerCase();
-            list = this.products.filter(p => {
-              const name = `${p.NOMBRE_DEL_PRODUCTO} ${p.SABOR || ''}`.toLowerCase();
-              return name.includes(term);
-            });
+            const q = this.searchQuery.toLowerCase();
+            return this.products.filter(p => 
+              `${p.NOMBRE_DEL_PRODUCTO} ${p.SABOR || ''}`.toLowerCase().includes(q)
+            );
           }
-          return list;
+          return this.products.filter(p => p.CATEGORIA === this.selectedCategory);
         },
         selectedProducts() {
-          return this.products.filter(p => this.selectedProductSKUs.includes(p.SKU) && p.quantity > 0);
+          return this.products.filter(p => this.selectedSKUs.includes(p.SKU) && p.quantity > 0);
         },
         totalPV() { return this.sum('PV'); },
         totalBase() { return this.sum('BASE_DE_GANANCIA'); },
-        totalSuggested() { return this.sum('PRECIO_DE_VENTA_SUGERIDO'); },
-        total025() { return this.sum('0.25'); },
-        total035() { return this.sum('0.35'); },
-        total042() { return this.sum('0.42'); },
-        total050() { return this.sum('0.50'); }
+        totalSuggested() { return this.sum('PRECIO_DE_VENTA_SUGERIDO'); }
       },
-      filters: {
-        toFixed(val) { return isNaN(val) ? '0.00' : Number(val).toFixed(2); }
-      },
+      filters: { toFixed: v => (v ? Number(v).toFixed(2) : '0.00') },
       methods: {
         sum(field) {
-          return this.selectedProducts.reduce((s, p) => s + (p.quantity || 0) * p[field], 0);
+          return this.selectedProducts.reduce((s, p) => s + p.quantity * p[field], 0);
         },
-        increase(p) { p.quantity = (p.quantity || 0) + 1; this.syncSelection(p); },
-        decrease(p) { p.quantity = Math.max(0, (p.quantity || 0) - 1); this.syncSelection(p); },
-        updateQty(p) { this.syncSelection(p); },
-        syncSelection(p) {
-          if (p.quantity > 0 && !this.selectedProductSKUs.includes(p.SKU)) {
-            this.selectedProductSKUs.push(p.SKU);
+        increase(p) { p.quantity = (p.quantity || 0) + 1; this.sync(p); },
+        decrease(p) { p.quantity = Math.max(0, (p.quantity || 0) - 1); this.sync(p); },
+        sync(p) {
+          if (p.quantity > 0 && !this.selectedSKUs.includes(p.SKU)) {
+            this.selectedSKUs.push(p.SKU);
           } else if (p.quantity <= 0) {
-            const i = this.selectedProductSKUs.indexOf(p.SKU);
-            if (i > -1) this.selectedProductSKUs.splice(i, 1);
+            this.selectedSKUs = this.selectedSKUs.filter(s => s !== p.SKU);
             p.quantity = 0;
           }
         },
-        onCategoryChange() { this.searchQuery = ''; },
-        clearSearch() { this.searchQuery = ''; },
+        toggle(sku) {
+          const i = this.expanded.indexOf(sku);
+          i === -1 ? this.expanded.push(sku) : this.expanded.splice(i, 1);
+        },
         clearCart() {
           this.products.forEach(p => p.quantity = 0);
-          this.selectedProductSKUs = [];
-          this.expandedItems = [];
-        },
-        toggleDetails(sku) {
-          const i = this.expandedItems.indexOf(sku);
-          i === -1 ? this.expandedItems.push(sku) : this.expandedItems.splice(i, 1);
+          this.selectedSKUs = [];
+          this.expanded = [];
         },
         scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); },
         openModal() { this.showModal = true; },
         closeModal() { this.showModal = false; },
-        async loadProducts() {
+        async load() {
           try {
             const res = await fetch('products.json');
             const data = await res.json();
-            this.products = data.map(p => ({
-              ...p,
-              PV: parseFloat(p.PV) || 0,
-              BASE_DE_GANANCIA: parseFloat(p.BASE_DE_GANANCIA) || 0,
-              PRECIO_DE_VENTA_SUGERIDO: parseFloat(p.PRECIO_DE_VENTA_SUGERIDO) || 0,
-              '0.25': parseFloat(p['0.25']) || 0,
-              '0.35': parseFloat(p['0.35']) || 0,
-              '0.42': parseFloat(p['0.42']) || 0,
-              '0.50': parseFloat(p['0.50']) || 0,
-              quantity: 0
+            this.products = data.map(p => ({ ...p, quantity: 0,
+              PV: +p.PV, BASE_DE_GANANCIA: +p.BASE_DE_GANANCIA,
+              PRECIO_DE_VENTA_SUGERIDO: +p.PRECIO_DE_VENTA_SUGERIDO,
+              '0.25': +p['0.25'], '0.35': +p['0.35'], '0.42': +p['0.42'], '0.50': +p['0.50']
             }));
-            if (this.products.length > 0 && !this.categories.includes(this.selectedCategory)) {
-              this.selectedCategory = this.categories[0];
-            }
-          } catch (e) { console.error('Error cargando productos:', e); }
+            if (this.categories.length > 0) this.selectedCategory = this.categories[0];
+          } catch (e) { console.error(e); }
         }
       },
-      mounted() {
-        this.loadProducts();
-      }
+      mounted() { this.load(); }
     }).mount('#app');
   </script>
 </body>
