@@ -34,6 +34,7 @@
     .summary h2 { color: #003087; margin-bottom: 12px; font-size: 1.2em; font-weight: 500; }
     .summary-item { margin-bottom: 12px; background: #f8f9fa; border: 1px solid #003087; border-radius: 6px; overflow: hidden; }
     .summary-item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: #e9ecef; font-size: 0.9em; }
+    .quantity-group { display: flex; align-items: center; gap: 6px; }
     .quantity-input-inline { width: 50px; padding: 5px; text-align: center; border: 1px solid #003087; border-radius: 5px; font-weight: 500; font-size: 0.9em; }
     .pv-total-inline { font-weight: bold; color: #003087; white-space: nowrap; font-size: 0.85em; }
     .toggle-details-btn { background: #003087; color: white; border: none; padding: 4px 8px; border-radius: 5px; font-size: 0.75em; cursor: pointer; font-weight: 500; }
@@ -107,7 +108,8 @@
       <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
         <div class="summary-item-header">
           <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px;">
+          <div class="quantity-group">
+            <button @click="decrease(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">−</button>
             <input 
               type="number" 
               :value="item.quantity" 
@@ -117,8 +119,9 @@
               class="quantity-input-inline" 
               min="0"
             >
-            <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
+            <button @click="increase(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">+</button>
           </div>
+          <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
           <button class="toggle-details-btn" @click="toggle(item.SKU)">
             {{ expanded.includes(item.SKU) ? '−' : '+' }}
           </button>
@@ -155,7 +158,8 @@
         <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
           <div class="summary-item-header">
             <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
-            <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px;">
+            <div class="quantity-group">
+              <button @click="decrease(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">−</button>
               <input 
                 type="number" 
                 :value="item.quantity" 
@@ -165,8 +169,9 @@
                 class="quantity-input-inline" 
                 min="0"
               >
-              <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
+              <button @click="increase(item)" class="quantity-control button" style="width: 28px; height: 28px; font-size: 0.9em;">+</button>
             </div>
+            <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
             <button class="toggle-details-btn" @click="toggle(item.SKU)">
               {{ expanded.includes(item.SKU) ? '−' : '+' }}
             </button>
@@ -254,11 +259,25 @@
           this.tempQty[item.SKU] = val === '' ? '' : parseInt(val) || 0;
         },
         commitQty(item) {
+          const originalQty = item.quantity;
           let newQty = this.tempQty[item.SKU];
-          if (newQty === '' || newQty === undefined) newQty = 0;
+
+          // Si no se cambió nada, no hacer nada
+          if (newQty === undefined) {
+            delete this.tempQty[item.SKU];
+            return;
+          }
+
+          // Si está vacío, tratar como 0
+          if (newQty === '') newQty = 0;
           newQty = Math.max(0, parseInt(newQty) || 0);
-          item.quantity = newQty;
-          this.sync(item);
+
+          // Solo actualizar si cambió
+          if (newQty !== originalQty) {
+            item.quantity = newQty;
+            this.sync(item);
+          }
+
           delete this.tempQty[item.SKU];
         },
         toggle(sku) {
@@ -301,7 +320,7 @@
           }
         }
       },
-      mounted() { this.load(); }
+               mounted() { this.load(); }
     }).mount('#app');
   </script>
 </body>
