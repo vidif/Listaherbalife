@@ -42,9 +42,9 @@
     .view-summary-btn, .scroll-to-top-btn { display: block; padding: 10px 20px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin: 10px auto; }
     .view-summary-btn:hover, .scroll-to-top-btn:hover { background: #d4a017; }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 20px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; }
     .modal.active { display: flex; }
-    .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     .close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; color: #333; }
   </style>
 </head>
@@ -59,7 +59,7 @@
 
     <div class="search-container">
       <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar...">
-      <button v-if="searchQuery" class="clear-search visible" @click="searchQuery = ''">×</button>
+      <button v-if="searchQuery" class="clear-search visible" @click="searchQuery = ''">X</button>
     </div>
 
     <div class="categories">
@@ -83,6 +83,7 @@
       </div>
     </div>
 
+    <!-- RESUMEN INFERIOR -->
     <div class="summary">
       <h2>Resumen del Pedido</h2>
       <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
@@ -96,30 +97,61 @@
           </button>
         </div>
         <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
-          <p><strong>Base:</strong> ${{ item.BASE_DE_GANANCIA | toFixed }}</p>
-          <p><strong>Sugerido:</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed }}</p>
+          <p><strong>Base (unit.):</strong> ${{ item.BASE_DE_GANANCIA | toFixed }}</p>
+          <p><strong>Sugerido (unit.):</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed }}</p>
           <p><strong>25%:</strong> ${{ item['0.25'] | toFixed }}</p>
           <p><strong>35%:</strong> ${{ item['0.35'] | toFixed }}</p>
           <p><strong>42%:</strong> ${{ item['0.42'] | toFixed }}</p>
           <p><strong>50%:</strong> ${{ item['0.50'] | toFixed }}</p>
         </div>
       </div>
+
       <h3>Totales Generales:</h3>
       <p><strong>P.V. Total:</strong> {{ totalPV | toFixed }} P.V.</p>
-      <p><strong>Base Total:</strong> ${{ totalBase | toFixed }}</p>
-      <p><strong>Sugerido Total:</strong> ${{ totalSuggested | toFixed }}</p>
+      <p><strong>Total Base:</strong> ${{ totalBase | toFixed }}</p>
+      <p><strong>Total Sugerido:</strong> ${{ totalSuggested | toFixed }}</p>
+      <p><strong>Total 25%:</strong> ${{ total025 | toFixed }}</p>
+      <p><strong>Total 35%:</strong> ${{ total035 | toFixed }}</p>
+      <p><strong>Total 42%:</strong> ${{ total042 | toFixed }}</p>
+      <p><strong>Total 50%:</strong> ${{ total050 | toFixed }}</p>
     </div>
 
     <button class="view-summary-btn" @click="openModal">Ver Resumen Detallado</button>
     <button class="scroll-to-top-btn" @click="scrollToTop">Subir</button>
 
+    <!-- MODAL: RESUMEN DETALLADO (IGUAL QUE INFERIOR) -->
     <div class="modal" :class="{ active: showModal }">
       <div class="modal-content">
-        <span class="close-modal" @click="closeModal">×</span>
+        <span class="close-modal" @click="closeModal">X</span>
         <h2>Resumen Detallado</h2>
-        <div v-for="i in selectedProducts" :key="i.SKU">
-          <p><strong>{{ i.NOMBRE_DEL_PRODUCTO }}</strong> - Cant: {{ i.quantity }} - P.V.: {{ (i.quantity * i.PV) | toFixed }}</p>
+        <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
+        <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
+          <div class="summary-item-header">
+            <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong> -
+            Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input-inline" @input="sync(item)">
+            <span class="pv-total-inline">| P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed }}</span>
+            <button class="toggle-details-btn" @click="toggle(item.SKU)">
+              {{ expanded.includes(item.SKU) ? '− Menos' : '+ Más detalles' }}
+            </button>
+          </div>
+          <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
+            <p><strong>Base (unit.):</strong> ${{ item.BASE_DE_GANANCIA | toFixed }}</p>
+            <p><strong>Sugerido (unit.):</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed }}</p>
+            <p><strong>25%:</strong> ${{ item['0.25'] | toFixed }}</p>
+            <p><strong>35%:</strong> ${{ item['0.35'] | toFixed }}</p>
+            <p><strong>42%:</strong> ${{ item['0.42'] | toFixed }}</p>
+            <p><strong>50%:</strong> ${{ item['0.50'] | toFixed }}</p>
+          </div>
         </div>
+
+        <h3>Totales Generales:</h3>
+        <p><strong>P.V. Total:</strong> {{ totalPV | toFixed }} P.V.</p>
+        <p><strong>Total Base:</strong> ${{ totalBase | toFixed }}</p>
+        <p><strong>Total Sugerido:</strong> ${{ totalSuggested | toFixed }}</p>
+        <p><strong>Total 25%:</strong> ${{ total025 | toFixed }}</p>
+        <p><strong>Total 35%:</strong> ${{ total035 | toFixed }}</p>
+        <p><strong>Total 42%:</strong> ${{ total042 | toFixed }}</p>
+        <p><strong>Total 50%:</strong> ${{ total050 | toFixed }}</p>
       </div>
     </div>
   </div>
@@ -155,12 +187,18 @@
         },
         totalPV() { return this.sum('PV'); },
         totalBase() { return this.sum('BASE_DE_GANANCIA'); },
-        totalSuggested() { return this.sum('PRECIO_DE_VENTA_SUGERIDO'); }
+        totalSuggested() { return this.sum('PRECIO_DE_VENTA_SUGERIDO'); },
+        total025() { return this.sum('0.25'); },
+        total035() { return this.sum('0.35'); },
+        total042() { return this.sum('0.42'); },
+        total050() { return this.sum('0.50'); }
       },
-      filters: { toFixed: v => (v ? Number(v).toFixed(2) : '0.00') },
+      filters: { 
+        toFixed: v => isNaN(v) ? '0.00' : Number(v).toFixed(2)
+      },
       methods: {
         sum(field) {
-          return this.selectedProducts.reduce((s, p) => s + p.quantity * p[field], 0);
+          return this.selectedProducts.reduce((s, p) => s + (p.quantity || 0) * p[field], 0);
         },
         increase(p) { p.quantity = (p.quantity || 0) + 1; this.sync(p); },
         decrease(p) { p.quantity = Math.max(0, (p.quantity || 0) - 1); this.sync(p); },
