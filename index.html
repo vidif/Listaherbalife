@@ -76,7 +76,7 @@
       </select>
     </div>
 
-    <!-- FICHAS DE PRODUCTOS (solo precios unitarios) -->
+    <!-- FICHAS DE PRODUCTOS -->
     <div class="products">
       <div v-for="p in displayedProducts" :key="p.SKU" class="product">
         <h3>{{ p.NOMBRE_DEL_PRODUCTO }} {{ p.SABOR ? `- ${p.SABOR}` : '' }}</h3>
@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <!-- RESUMEN INFERIOR (precios totales por cantidad) -->
+    <!-- RESUMEN INFERIOR -->
     <div class="summary">
       <h2>Resumen del Pedido</h2>
       <p v-if="selectedProducts.length === 0" style="font-style: italic; color: #666; margin: 16px 0;">No hay productos seleccionados.</p>
@@ -104,7 +104,17 @@
         <div class="summary-item-header">
           <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
           <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px;">
-            Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input-inline" @input="sync(item)">
+            Cantidad: 
+            <input 
+              type="number" 
+              :value="item.quantity" 
+              @input="updateTempQty(item, $event)" 
+              @blur="commitQty(item)" 
+              @keyup.enter="commitQty(item)"
+              class="quantity-input-inline" 
+              min="0"
+              style="width: 60px;"
+            >
             <span class="pv-total-inline">| P.V. Total: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
           </div>
           <button class="toggle-details-btn" @click="toggle(item.SKU)">
@@ -134,7 +144,7 @@
     <button class="view-summary-btn" @click="openModal">Ver Resumen Detallado</button>
     <button class="scroll-to-top-btn" @click="scrollToTop">Subir al Inicio</button>
 
-    <!-- MODAL: RESUMEN DETALLADO (igual que inferior) -->
+    <!-- MODAL: RESUMEN DETALLADO -->
     <div class="modal" :class="{ active: showModal }">
       <div class="modal-content">
         <span class="close-modal" @click="closeModal">X</span>
@@ -144,8 +154,20 @@
           <div class="summary-item-header">
             <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
             <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px;">
-              Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input-inline" @input="sync(item)">
-              <span class="pv-total-inline">| P.V. Total: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
+              Cantidad: 
+              <input 
+                type="number" 
+                :value="item.quantity" 
+                @input="updateTempQty(item, $event)" 
+                @blur="commitQty(item)" 
+                @keyup.enter="commitQty(item)"
+                class="quantity-input-inline" 
+                min="0"
+                style="width: 60px;"
+              >
+              <span class="pv-total-inline">| P.V. Total: {{ format((item.quantity || 0) * item.PV, 2)
+
+ </span>
             </div>
             <button class="toggle-details-btn" @click="toggle(item.SKU)">
               {{ expanded.includes(item.SKU) ? '− Menos' : '+ Más detalles' }}
@@ -183,7 +205,8 @@
           searchQuery: '',
           selectedSKUs: [],
           expanded: [],
-          showModal: false
+          showModal: false,
+          tempQty: {} // Almacena cantidad temporal mientras se edita
         };
       },
       computed: {
@@ -228,6 +251,20 @@
             p.quantity = 0;
           }
         },
+        // Actualiza cantidad temporal mientras escribes
+        updateTempQty(item, event) {
+          const val = event.target.value;
+          this.tempQty[item.SKU] = val === '' ? '' : parseInt(val) || 0;
+        },
+        // Confirma la cantidad al salir o presionar Enter
+        commitQty(item) {
+          let newQty = this.tempQty[item.SKU];
+          if (newQty === '' || newQty === undefined) newQty = 0;
+          newQty = Math.max(0, parseInt(newQty) || 0);
+          item.quantity = newQty;
+          this.sync(item);
+          delete this.tempQty[item.SKU];
+        },
         toggle(sku) {
           const i = this.expanded.indexOf(sku);
           i === -1 ? this.expanded.push(sku) : this.expanded.splice(i, 1);
@@ -238,7 +275,7 @@
           this.expanded = [];
         },
         clearSearchOnCategoryChange() {
-          this.searchQuery = ''; // Limpia búsqueda al cambiar categoría
+          this.searchQuery = '';
         },
         scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); },
         openModal() { this.showModal = true; },
