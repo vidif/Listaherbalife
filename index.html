@@ -218,7 +218,7 @@
 
   <script>
     const { createApp } = Vue;
-    createApp({
+    const app = createApp({
       data() {
         return {
           products: [],
@@ -227,7 +227,8 @@
           selectedSKUs: [],
           expanded: [],
           showModal: false,
-          tempQty: {}
+          tempQty: {},
+          hasOrder: false // Bandera: ¿hay pedido activo?
         };
       },
       computed: {
@@ -267,10 +268,15 @@
         sync(p) {
           if (p.quantity > 0 && !this.selectedSKUs.includes(p.SKU)) {
             this.selectedSKUs.push(p.SKU);
+            this.hasOrder = true;
           } else if (p.quantity <= 0) {
             this.selectedSKUs = this.selectedSKUs.filter(s => s !== p.SKU);
             p.quantity = 0;
+            this.checkHasOrder();
           }
+        },
+        checkHasOrder() {
+          this.hasOrder = this.selectedProducts.length > 0;
         },
         updateTempQty(item, event) {
           const val = event.target.value;
@@ -300,9 +306,12 @@
           i === -1 ? this.expanded.push(sku) : this.expanded.splice(i, 1);
         },
         clearCart() {
-          this.products.forEach(p => p.quantity = 0);
-          this.selectedSKUs = [];
-          this.expanded = [];
+          if (confirm('¿Estás seguro de vaciar el carrito?')) {
+            this.products.forEach(p => p.quantity = 0);
+            this.selectedSKUs = [];
+            this.expanded = [];
+            this.hasOrder = false;
+          }
         },
         clearSearchOnCategoryChange() {
           this.searchQuery = '';
@@ -335,7 +344,23 @@
           }
         }
       },
-      mounted() { this.load(); }
+      mounted() { 
+        this.load(); 
+
+        // ADVERTENCIA AL RECARGAR O CERRAR
+        window.addEventListener('beforeunload', (e) => {
+          if (this.hasOrder) {
+            const message = 'Tienes un pedido en curso. ¿Estás seguro de salir? Se perderán los datos.';
+            e.returnValue = message;
+            return message;
+          }
+        });
+      },
+      watch: {
+        selectedProducts() {
+          this.checkHasOrder();
+        }
+      }
     }).mount('#app');
   </script>
 </body>
