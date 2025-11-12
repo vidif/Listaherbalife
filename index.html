@@ -71,12 +71,12 @@
     </div>
 
     <div class="categories">
-      <select v-model="selectedCategory" class="category-select">
+      <select v-model="selectedCategory" class="category-select" @change="clearSearchOnCategoryChange">
         <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
       </select>
     </div>
 
-    <!-- FICHAS DE PRODUCTOS -->
+    <!-- FICHAS DE PRODUCTOS (solo precios unitarios) -->
     <div class="products">
       <div v-for="p in displayedProducts" :key="p.SKU" class="product">
         <h3>{{ p.NOMBRE_DEL_PRODUCTO }} {{ p.SABOR ? `- ${p.SABOR}` : '' }}</h3>
@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <!-- RESUMEN INFERIOR -->
+    <!-- RESUMEN INFERIOR (precios totales por cantidad) -->
     <div class="summary">
       <h2>Resumen del Pedido</h2>
       <p v-if="selectedProducts.length === 0" style="font-style: italic; color: #666; margin: 16px 0;">No hay productos seleccionados.</p>
@@ -112,12 +112,12 @@
           </button>
         </div>
         <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
-          <p><strong>Base (unit.):</strong> ${{ format(item.BASE_DE_GANANCIA, 2) }}</p>
-          <p><strong>Sugerido (unit.):</strong> ${{ format(item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
-          <p><strong>25% (unit.):</strong> ${{ format(item['0.25'], 2) }}</p>
-          <p><strong>35% (unit.):</strong> ${{ format(item['0.35'], 2) }}</p>
-          <p><strong>42% (unit.):</strong> ${{ format(item['0.42'], 2) }}</p>
-          <p><strong>50% (unit.):</strong> ${{ format(item['0.50'], 2) }}</p>
+          <p><strong>Total Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
+          <p><strong>Total Sugerido:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
+          <p><strong>Total 25%:</strong> ${{ format((item.quantity || 0) * item['0.25'], 2) }}</p>
+          <p><strong>Total 35%:</strong> ${{ format((item.quantity || 0) * item['0.35'], 2) }}</p>
+          <p><strong>Total 42%:</strong> ${{ format((item.quantity || 0) * item['0.42'], 2) }}</p>
+          <p><strong>Total 50%:</strong> ${{ format((item.quantity || 0) * item['0.50'], 2) }}</p>
         </div>
       </div>
 
@@ -134,7 +134,7 @@
     <button class="view-summary-btn" @click="openModal">Ver Resumen Detallado</button>
     <button class="scroll-to-top-btn" @click="scrollToTop">Subir al Inicio</button>
 
-    <!-- MODAL: RESUMEN DETALLADO -->
+    <!-- MODAL: RESUMEN DETALLADO (igual que inferior) -->
     <div class="modal" :class="{ active: showModal }">
       <div class="modal-content">
         <span class="close-modal" @click="closeModal">X</span>
@@ -152,12 +152,12 @@
             </button>
           </div>
           <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
-            <p><strong>Base (unit.):</strong> ${{ format(item.BASE_DE_GANANCIA, 2) }}</p>
-            <p><strong>Sugerido (unit.):</strong> ${{ format(item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
-            <p><strong>25% (unit.):</strong> ${{ format(item['0.25'], 2) }}</p>
-            <p><strong>35% (unit.):</strong> ${{ format(item['0.35'], 2) }}</p>
-            <p><strong>42% (unit.):</strong> ${{ format(item['0.42'], 2) }}</p>
-            <p><strong>50% (unit.):</strong> ${{ format(item['0.50'], 2) }}</p>
+            <p><strong>Total Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
+            <p><strong>Total Sugerido:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
+            <p><strong>Total 25%:</strong> ${{ format((item.quantity || 0) * item['0.25'], 2) }}</p>
+            <p><strong>Total 35%:</strong> ${{ format((item.quantity || 0) * item['0.35'], 2) }}</p>
+            <p><strong>Total 42%:</strong> ${{ format((item.quantity || 0) * item['0.42'], 2) }}</p>
+            <p><strong>Total 50%:</strong> ${{ format((item.quantity || 0) * item['0.50'], 2) }}</p>
           </div>
         </div>
 
@@ -236,6 +236,9 @@
           this.products.forEach(p => p.quantity = 0);
           this.selectedSKUs = [];
           this.expanded = [];
+        },
+        clearSearchOnCategoryChange() {
+          this.searchQuery = ''; // Limpia búsqueda al cambiar categoría
         },
         scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); },
         openModal() { this.showModal = true; },
