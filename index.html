@@ -46,6 +46,10 @@
     .summary-item-details { padding: 10px; background: #fff; border-top: 1px dashed #ccc; font-size: 0.85em; line-height: 1.5; }
     .summary-item-details p { margin: 4px 0; }
 
+    .totals-section { margin-top: 16px; }
+    .totals-title { color: #003087; font-size: 1.1em; font-weight: 600; margin-bottom: 8px; }
+    .total-item { margin: 4px 0; font-size: 0.9em; }
+
     .view-summary-btn, .scroll-to-top-btn { display: block; padding: 10px 18px; background: #003087; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin: 8px auto; font-weight: 500; font-size: 0.9em; }
     .view-summary-btn:hover, .scroll-to-top-btn:hover { background: #d4a017; }
 
@@ -150,14 +154,17 @@
         </div>
       </div>
 
-      <h3 style="margin-top: 16px; color: #003087; font-size: 1.1em;">Totales:</h3>
-      <p><strong>P.V.:</strong> {{ format(totalPV, 2) }}</p>
-      <p><strong>Base:</strong> ${{ format(totalBase, 2) }}</p>
-      <p><strong>Sug.:</strong> ${{ format(totalSuggested, 2) }}</p>
-      <p><strong>25%:</strong> ${{ format(total025, 2) }}</p>
-      <p><strong>35%:</strong> ${{ format(total035, 2) }}</p>
-      <p><strong>42%:</strong> ${{ format(total042, 2) }}</p>
-      <p><strong>50%:</strong> ${{ format(total050, 2) }}</p>
+      <!-- TOTALES GENERALES -->
+      <div class="totals-section">
+        <h3 class="totals-title">Totales Generales:</h3>
+        <p class="total-item"><strong>Puntos de Volumen Total:</strong> {{ format(totalPV, 2) }}</p>
+        <p class="total-item"><strong>Total Base de Ganancia:</strong> ${{ format(totalBase, 2) }}</p>
+        <p class="total-item"><strong>Total Precio Sugerido:</strong> ${{ format(totalSuggested, 2) }}</p>
+        <p class="total-item"><strong>Total 25%:</strong> ${{ format(total025, 2) }}</p>
+        <p class="total-item"><strong>Total 35%:</strong> ${{ format(total035, 2) }}</p>
+        <p class="total-item"><strong>Total 42%:</strong> ${{ format(total042, 2) }}</p>
+        <p class="total-item"><strong>Total 50%:</strong> ${{ format(total050, 2) }}</p>
+      </div>
     </div>
 
     <button class="view-summary-btn" @click="openModal">Ver Resumen</button>
@@ -204,14 +211,17 @@
           </div>
         </div>
 
-        <h3 style="margin-top: 16px; color: #003087; font-size: 1.1em;">Totales:</h3>
-        <p><strong>P.V.:</strong> {{ format(totalPV, 2) }}</p>
-        <p><strong>Base:</strong> ${{ format(totalBase, 2) }}</p>
-        <p><strong>Sug.:</strong> ${{ format(totalSuggested, 2) }}</p>
-        <p><strong>25%:</strong> ${{ format(total025, 2) }}</p>
-        <p><strong>35%:</strong> ${{ format(total035, 2) }}</p>
-        <p><strong>42%:</strong> ${{ format(total042, 2) }}</p>
-        <p><strong>50%:</strong> ${{ format(total050, 2) }}</p>
+        <!-- TOTALES GENERALES EN MODAL -->
+        <div class="totals-section">
+          <h3 class="totals-title">Totales Generales:</h3>
+          <p class="total-item"><strong>Puntos de Volumen Total:</strong> {{ format(totalPV, 2) }}</p>
+          <p class="total-item"><strong>Total Base de Ganancia:</strong> ${{ format(totalBase, 2) }}</p>
+          <p class="total-item"><strong>Total Precio Sugerido:</strong> ${{ format(totalSuggested, 2) }}</p>
+          <p class="total-item"><strong>Total 25%:</strong> ${{ format(total025, 2) }}</p>
+          <p class="total-item"><strong>Total 35%:</strong> ${{ format(total035, 2) }}</p>
+          <p class="total-item"><strong>Total 42%:</strong> ${{ format(total042, 2) }}</p>
+          <p class="total-item"><strong>Total 50%:</strong> ${{ format(total050, 2) }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -228,7 +238,7 @@
           expanded: [],
           showModal: false,
           tempQty: {},
-          hasOrder: false // Bandera: ¿hay pedido activo?
+          hasOrder: false
         };
       },
       computed: {
@@ -347,7 +357,6 @@
       mounted() { 
         this.load(); 
 
-        // ADVERTENCIA AL RECARGAR O CERRAR
         window.addEventListener('beforeunload', (e) => {
           if (this.hasOrder) {
             const message = 'Tienes un pedido en curso. ¿Estás seguro de salir? Se perderán los datos.';
