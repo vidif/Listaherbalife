@@ -33,13 +33,15 @@
     .summary { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #003087; margin-bottom: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
     .summary h2 { color: #003087; margin-bottom: 12px; font-size: 1.2em; font-weight: 500; }
     .summary-item { margin-bottom: 12px; background: #f8f9fa; border: 1px solid #003087; border-radius: 6px; overflow: hidden; }
-    .summary-item-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: #e9ecef; font-size: 0.9em; }
+    .summary-item-header { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #e9ecef; font-size: 0.9em; align-items: center; }
+    .summary-item-title { flex: 1; min-width: 180px; font-weight: 500; }
+    .summary-item-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .quantity-group { display: flex; align-items: center; gap: 6px; }
     .quantity-input-inline { width: 50px; padding: 5px; text-align: center; border: 1px solid #003087; border-radius: 5px; font-weight: 500; font-size: 0.9em; }
     .pv-total-inline { font-weight: bold; color: #003087; white-space: nowrap; font-size: 0.85em; }
     .btn-qty { width: 28px; height: 28px; background: #003087; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     .btn-qty:hover { background: #d4a017; }
-    .btn-details { background: #e9ecef; color: #003087; border: 1px solid #003087; padding: 4px 10px; border-radius: 5px; font-size: 0.75em; cursor: pointer; font-weight: 500; }
+    .btn-details { background: #e9ecef; color: #003087; border: 1px solid #003087; padding: 4px 10px; border-radius: 5px; font-size: 0.75em; cursor: pointer; font-weight: 500; white-space: nowrap; }
     .btn-details:hover { background: #d4d4d4; }
     .summary-item-details { padding: 10px; background: #fff; border-top: 1px dashed #ccc; font-size: 0.85em; line-height: 1.5; }
     .summary-item-details p { margin: 4px 0; }
@@ -56,10 +58,16 @@
       .products { grid-template-columns: 1fr; gap: 10px; }
       .product { padding: 10px; }
       .product h3 { font-size: 0.95em; }
-      .summary-item-header { flex-direction: column; align-items: flex-start; gap: 6px; }
-      .pv-total-inline { white-space: normal; }
+      .summary-item-title { min-width: 140px; }
       .header-actions { gap: 8px; }
       .header-actions button { font-size: 0.85em; padding: 7px 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .summary-item-controls { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .quantity-group { width: 100%; justify-content: center; }
+      .pv-total-inline { width: 100%; text-align: center; }
+      .btn-details { width: 100%; text-align: center; }
     }
   </style>
 </head>
@@ -109,24 +117,28 @@
       <p v-if="selectedProducts.length === 0" style="font-style: italic; color: #666; margin: 10px 0; font-size: 0.9em;">No hay productos seleccionados.</p>
       <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
         <div class="summary-item-header">
-          <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
-          <div class="quantity-group">
-            <button @click="decrease(item)" class="btn-qty">−</button>
-            <input 
-              type="number" 
-              :value="item.quantity" 
-              @input="updateTempQty(item, $event)" 
-              @blur="commitQty(item)" 
-              @keyup.enter="commitQty(item)"
-              class="quantity-input-inline" 
-              min="0"
-            >
-            <button @click="increase(item)" class="btn-qty">+</button>
+          <div class="summary-item-title">
+            <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
           </div>
-          <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
-          <button class="btn-details" @click="toggle(item.SKU)">
-            {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
-          </button>
+          <div class="summary-item-controls">
+            <div class="quantity-group">
+              <button @click="decrease(item)" class="btn-qty">−</button>
+              <input 
+                type="number" 
+                :value="item.quantity" 
+                @input="updateTempQty(item, $event)" 
+                @blur="commitQty(item)" 
+                @keyup.enter="commitQty(item)"
+                class="quantity-input-inline" 
+                min="0"
+              >
+              <button @click="increase(item)" class="btn-qty">+</button>
+            </div>
+            <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
+            <button class="btn-details" @click="toggle(item.SKU)">
+              {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
+            </button>
+          </div>
         </div>
         <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
           <p><strong>Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
@@ -159,24 +171,28 @@
         <p v-if="selectedProducts.length === 0" style="font-style: italic; color: #666; margin: 10px 0; font-size: 0.9em;">No hay productos.</p>
         <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
           <div class="summary-item-header">
-            <strong style="font-size: 0.9em;">{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
-            <div class="quantity-group">
-              <button @click="decrease(item)" class="btn-qty">−</button>
-              <input 
-                type="number" 
-                :value="item.quantity" 
-                @input="updateTempQty(item, $event)" 
-                @blur="commitQty(item)" 
-                @keyup.enter="commitQty(item)"
-                class="quantity-input-inline" 
-                min="0"
-              >
-              <button @click="increase(item)" class="btn-qty">+</button>
+            <div class="summary-item-title">
+              <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong>
             </div>
-            <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
-            <button class="btn-details" @click="toggle(item.SKU)">
-              {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
-            </button>
+            <div class="summary-item-controls">
+              <div class="quantity-group">
+                <button @click="decrease(item)" class="btn-qty">−</button>
+                <input 
+                  type="number" 
+                  :value="item.quantity" 
+                  @input="updateTempQty(item, $event)" 
+                  @blur="commitQty(item)" 
+                  @keyup.enter="commitQty(item)"
+                  class="quantity-input-inline" 
+                  min="0"
+                >
+                <button @click="increase(item)" class="btn-qty">+</button>
+              </div>
+              <span class="pv-total-inline">P.V.: {{ format((item.quantity || 0) * item.PV, 2) }}</span>
+              <button class="btn-details" @click="toggle(item.SKU)">
+                {{ expanded.includes(item.SKU) ? 'Ocultar' : 'Detalles' }}
+              </button>
+            </div>
           </div>
           <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
             <p><strong>Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
