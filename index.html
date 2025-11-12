@@ -85,7 +85,7 @@
     <div class="pv-total">Total P.V.: {{ format(totalPV, 2) }} P.V.</div>
 
     <div class="search-container">
-      <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar...">
+      <input v-model="searchQuery" type="text" class="search-bar" placeholder="Buscar por nombre o sabor...">
       <button v-if="searchQuery" class="clear-search visible" @click="searchQuery = ''">X</button>
     </div>
 
@@ -154,7 +154,6 @@
         </div>
       </div>
 
-      <!-- TOTALES GENERALES -->
       <div class="totals-section">
         <h3 class="totals-title">Totales Generales:</h3>
         <p class="total-item"><strong>Puntos de Volumen Total:</strong> {{ format(totalPV, 2) }}</p>
@@ -211,7 +210,6 @@
           </div>
         </div>
 
-        <!-- TOTALES GENERALES EN MODAL -->
         <div class="totals-section">
           <h3 class="totals-title">Totales Generales:</h3>
           <p class="total-item"><strong>Puntos de Volumen Total:</strong> {{ format(totalPV, 2) }}</p>
@@ -247,10 +245,12 @@
         },
         displayedProducts() {
           if (this.searchQuery) {
-            const q = this.searchQuery.toLowerCase().trim();
+            const query = this.normalize(this.searchQuery.trim());
+            if (!query) return [];
             return this.products.filter(p => {
-              const name = `${p.NOMBRE_DEL_PRODUCTO} ${p.SABOR || ''}`.toLowerCase();
-              return name.includes(q);
+              const name = this.normalize(p.NOMBRE_DEL_PRODUCTO);
+              const flavor = p.SABOR ? this.normalize(p.SABOR) : '';
+              return name.includes(query) || flavor.includes(query);
             });
           }
           return this.products.filter(p => p.CATEGORIA === this.selectedCategory);
@@ -267,6 +267,13 @@
         total050() { return this.sum('0.50'); }
       },
       methods: {
+        // NUEVA FUNCIÓN: QUITA ACENTOS Y MAYÚSCULAS
+        normalize(str) {
+          return str
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+        },
         format(value, decimals = 2) {
           return isNaN(value) ? '0.' + '0'.repeat(decimals) : Number(value).toFixed(decimals);
         },
