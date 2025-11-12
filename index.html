@@ -145,8 +145,8 @@
           </div>
         </div>
         <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
-          <p><strong>Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
-          <p><strong>Sug.:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
+          <p><strong>Base de Ganancia:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
+          <p><strong>Precio Sugerido:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
           <p><strong>25%:</strong> ${{ format((item.quantity || 0) * item['0.25'], 2) }}</p>
           <p><strong>35%:</strong> ${{ format((item.quantity || 0) * item['0.35'], 2) }}</p>
           <p><strong>42%:</strong> ${{ format((item.quantity || 0) * item['0.42'], 2) }}</p>
@@ -202,8 +202,8 @@
             </div>
           </div>
           <div v-if="expanded.includes(item.SKU)" class="summary-item-details">
-            <p><strong>Base:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
-            <p><strong>Sug.:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
+            <p><strong>Base de Ganancia:</strong> ${{ format((item.quantity || 0) * item.BASE_DE_GANANCIA, 2) }}</p>
+            <p><strong>Precio Sugerido:</strong> ${{ format((item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO, 2) }}</p>
             <p><strong>25%:</strong> ${{ format((item.quantity || 0) * item['0.25'], 2) }}</p>
             <p><strong>35%:</strong> ${{ format((item.quantity || 0) * item['0.35'], 2) }}</p>
             <p><strong>42%:</strong> ${{ format((item.quantity || 0) * item['0.42'], 2) }}</p>
