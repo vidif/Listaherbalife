@@ -212,6 +212,7 @@
       background-color: #d4a017;
     }
 
+    /* ESTILOS PARA RESUMEN COMPACTO CON EXPANSIÓN */
     .summary {
       background-color: #e9ecef;
       padding: 20px;
@@ -227,21 +228,59 @@
       font-weight: 500;
     }
 
-    .summary p {
-      margin-bottom: 8px;
+    .summary-item {
+      margin-bottom: 10px;
+      font-size: 0.95em;
+      padding: 8px;
+      background-color: #f8f9fa;
+      border: 1px solid #003087;
+      border-radius: 6px;
+    }
+
+    .summary-item-header {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quantity-input-inline {
+      padding: 4px 6px;
+      border: 1px solid #003087;
+      border-radius: 4px;
+      font-size: 0.9em;
+      width: 50px;
+      text-align: center;
+    }
+
+    .pv-total-inline {
+      font-weight: bold;
+      color: #003087;
+      white-space: nowrap;
+    }
+
+    .toggle-details-btn {
+      background-color: #003087;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      cursor: pointer;
+    }
+
+    .toggle-details-btn:hover {
+      background-color: #d4a017;
+    }
+
+    .summary-item-details {
+      padding: 10px 0 0 0;
       font-size: 0.9em;
       color: #555;
     }
 
-    .summary .quantity-input {
-      width: 50px;
-      padding: 5px;
-      background-color: #ffffff;
-      color: #333;
-      border: 1px solid #003087;
-      border-radius: 5px;
-      text-align: center;
-      margin-left: 5px;
+    .summary-item-details p {
+      margin: 4px 0;
     }
 
     .view-summary-btn {
@@ -359,6 +398,15 @@
         flex-direction: column;
         gap: 10px;
       }
+
+      .summary-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .pv-total-inline {
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -401,20 +449,38 @@
       </div>
     </div>
 
+    <!-- RESUMEN COMPACTO CON BOTÓN MÁS DETALLES -->
     <div class="summary" id="summary-section">
       <h2>Resumen del Pedido</h2>
       <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
-      <p v-for="item in selectedProducts" :key="item.SKU">
-        <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR ? item.SABOR : 'Sin sabor' }})</strong> - 
-        Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input" @input="updateQuantityInput(item)" @blur="finalizeQuantityEdit(item)"> | 
-        <strong>P.V. Total: {{ (item.quantity || 0) * item.PV.toFixed(2) }}</strong> | 
-        Base Ganancia: ${{ (item.quantity || 0) * item.BASE_DE_GANANCIA.toFixed(2) }} | 
-        Precio Sug.: ${{ (item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }} | 
-        25%: ${{ (item.quantity || 0) * item['0.25'].toFixed(2) }} | 
-        35%: ${{ (item.quantity || 0) * item['0.35'].toFixed(2) }} | 
-        42%: ${{ (item.quantity || 0) * item['0.42'].toFixed(2) }} | 
-        50%: ${{ (item.quantity || 0) * item['0.50'].toFixed(2) }}
-      </p>
+
+      <div v-for="item in selectedProducts" :key="item.SKU" class="summary-item">
+        <div class="summary-item-header">
+          <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR || 'Sin sabor' }})</strong> - 
+          Cantidad: 
+          <input 
+            type="number" 
+            v-model.number="item.quantity" 
+            min="0" 
+            class="quantity-input-inline"
+            @input="updateQuantityInSummary(item)"
+            @blur="finalizeQuantityEdit(item)">
+          <span class="pv-total-inline">| P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed(2) }}</span>
+          <button class="toggle-details-btn" @click="toggleDetails(item.SKU)">
+            {{ expandedItems.includes(item.SKU) ? '− Menos' : '+ Más detalles' }}
+          </button>
+        </div>
+
+        <div v-if="expandedItems.includes(item.SKU)" class="summary-item-details">
+          <p><strong>Base Ganancia (unitario):</strong> ${{ item.BASE_DE_GANANCIA | toFixed(2) }}</p>
+          <p><strong>Precio Sug. (unitario):</strong> ${{ item.PRECIO_DE_VENTA_SUGERIDO | toFixed(2) }}</p>
+          <p><strong>25% (unitario):</strong> ${{ item['0.25'] | toFixed(2) }}</p>
+          <p><strong>35% (unitario):</strong> ${{ item['0.35'] | toFixed(2) }}</p>
+          <p><strong>42% (unitario):</strong> ${{ item['0.42'] | toFixed(2) }}</p>
+          <p><strong>50% (unitario):</strong> ${{ item['0.50'] | toFixed(2) }}</p>
+        </div>
+      </div>
+
       <h3>Totales Generales:</h3>
       <p><strong>Puntos de Volumen Total:</strong> {{ totalPV.toFixed(2) }} P.V.</p>
       <p><strong>Total Base de Ganancia:</strong> ${{ totalBase.toFixed(2) }}</p>
@@ -432,19 +498,19 @@
     <div class="modal" :class="{ active: showModal }">
       <div class="modal-content">
         <span class="close-modal" @click="closeModal">×</span>
-        <h2>Resumen del Pedido</h2>
+        <h2>Resumen Detallado</h2>
         <p v-if="selectedProducts.length === 0">No hay productos seleccionados.</p>
         <div v-for="item in selectedProducts" :key="item.SKU" class="item-details">
           <p>
             <strong>{{ item.NOMBRE_DEL_PRODUCTO }} ({{ item.SABOR ? item.SABOR : 'Sin sabor' }})</strong> - 
             Cantidad: <input type="number" v-model.number="item.quantity" min="0" class="quantity-input" @input="updateQuantityInput(item)" @blur="finalizeQuantityEdit(item)"> | 
-            <strong>P.V. Total: {{ (item.quantity || 0) * item.PV.toFixed(2) }}</strong> | 
-            Base Ganancia: ${{ (item.quantity || 0) * item.BASE_DE_GANANCIA.toFixed(2) }} | 
-            Precio Sug.: ${{ (item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO.toFixed(2) }} | 
-            25%: ${{ (item.quantity || 0) * item['0.25'].toFixed(2) }} | 
-            35%: ${{ (item.quantity || 0) * item['0.35'].toFixed(2) }} | 
-            42%: ${{ (item.quantity || 0) * item['0.42'].toFixed(2) }} | 
-            50%: ${{ (item.quantity || 0) * item['0.50'].toFixed(2) }}
+            <strong>P.V. Total: {{ (item.quantity || 0) * item.PV | toFixed(2) }}</strong> | 
+            Base Ganancia: ${{ (item.quantity || 0) * item.BASE_DE_GANANCIA | toFixed(2) }} | 
+            Precio Sug.: ${{ (item.quantity || 0) * item.PRECIO_DE_VENTA_SUGERIDO | toFixed(2) }} | 
+            25%: ${{ (item.quantity || 0) * item['0.25'] | toFixed(2) }} | 
+            35%: ${{ (item.quantity || 0) * item['0.35'] | toFixed(2) }} | 
+            42%: ${{ (item.quantity || 0) * item['0.42'] | toFixed(2) }} | 
+            50%: ${{ (item.quantity || 0) * item['0.50'] | toFixed(2) }}
           </p>
         </div>
         <h3>Totales Generales:</h3>
@@ -468,10 +534,11 @@
           selectedCategory: 'BATIDOS',
           searchQuery: '',
           productsVisible: true,
-          products: [], // Inicializamos como array vacío
+          products: [],
           showModal: false,
-          selectedProductSKUs: [], // Lista para rastrear los SKUs de productos seleccionados
-          emptyFieldTimeouts: {}, // Objeto para rastrear temporizadores de campos vacíos
+          selectedProductSKUs: [],
+          emptyFieldTimeouts: {},
+          expandedItems: [] // Para rastrear expansión de detalles
         };
       },
       computed: {
@@ -484,7 +551,7 @@
           );
 
           if (!this.searchQuery) {
-            return categoryProducts; // Si no hay búsqueda, mostrar solo los productos de la categoría
+            return categoryProducts;
           }
 
           const searchTerm = this.removeAccents(this.searchQuery.toLowerCase().trim());
@@ -501,7 +568,6 @@
           return [...searchResults, ...remainingCategoryProducts];
         },
         selectedProducts() {
-          // Mostrar productos que están en selectedProductSKUs
           return this.products.filter((product) => this.selectedProductSKUs.includes(product.SKU));
         },
         totalPV() {
@@ -524,6 +590,11 @@
         },
         total050() {
           return this.selectedProducts.reduce((sum, item) => sum + ((item.quantity || 0) * item['0.50']), 0);
+        }
+      },
+      filters: {
+        toFixed(value, decimals = 2) {
+          return isNaN(value) ? '0.00' : Number(value).toFixed(decimals);
         }
       },
       methods: {
@@ -549,32 +620,26 @@
           this.updateProductSelection(product);
         },
         updateQuantityInput(product) {
-          // Cancelar temporizador existente si lo hay
           if (this.emptyFieldTimeouts[product.SKU]) {
             clearTimeout(this.emptyFieldTimeouts[product.SKU]);
             delete this.emptyFieldTimeouts[product.SKU];
           }
 
-          // Si el campo está vacío, iniciar un temporizador de 30 segundos
           if (product.quantity === null || product.quantity === undefined || product.quantity === '') {
-            console.log('Iniciando temporizador para SKU:', product.SKU); // Depuración
             this.emptyFieldTimeouts[product.SKU] = setTimeout(() => {
-              console.log('Temporizador ejecutado para SKU:', product.SKU); // Depuración
-              product.quantity = 0; // Cambiar a 0 después de 30 segundos
-              this.updateProductSelection(product); // Actualizar selección para eliminar si es 0
-            }, 30000); // 30 segundos
+              product.quantity = 0;
+              this.updateProductSelection(product);
+            }, 30000);
           } else if (product.quantity > 0) {
-            // Si el usuario ingresa un valor mayor a 0, actualizar selección inmediatamente
             this.updateProductSelection(product);
           }
         },
         finalizeQuantityEdit(product) {
-          // No cancelar el temporizador si el campo está vacío, permitir que continúe
           if (product.quantity === 0) {
             const index = this.selectedProductSKUs.indexOf(product.SKU);
             if (index !== -1) {
               this.selectedProductSKUs.splice(index, 1);
-              product.quantity = 0; // Asegurar que la cantidad sea 0
+              product.quantity = 0;
             }
           } else if (product.quantity > 0 && !this.selectedProductSKUs.includes(product.SKU)) {
             this.selectedProductSKUs.push(product.SKU);
@@ -582,7 +647,6 @@
           this.updateSummary();
         },
         updateProductSelection(product) {
-          // Actualizar selección al usar botones o al finalizar edición
           if (product.quantity > 0 && !this.selectedProductSKUs.includes(product.SKU)) {
             this.selectedProductSKUs.push(product.SKU);
           } else if (product.quantity === 0 || product.quantity === null || product.quantity === undefined) {
@@ -594,15 +658,28 @@
           this.updateSummary();
         },
         updateSummary() {
-          this.products = [...this.products]; // Forzar reactividad
+          this.products = [...this.products];
+        },
+        updateQuantityInSummary(item) {
+          if (item.quantity === null || item.quantity === undefined || item.quantity === '') {
+            item.quantity = 0;
+          }
+          this.updateProductSelection(item);
+        },
+        toggleDetails(sku) {
+          const index = this.expandedItems.indexOf(sku);
+          if (index === -1) {
+            this.expandedItems.push(sku);
+          } else {
+            this.expandedItems.splice(index, 1);
+          }
         },
         clearCart() {
-          // Limpiar todas las cantidades y el resumen
           this.products.forEach((product) => {
             product.quantity = 0;
           });
           this.selectedProductSKUs = [];
-          // Cancelar todos los temporizadores activos
+          this.expandedItems = [];
           Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
             clearTimeout(this.emptyFieldTimeouts[sku]);
             delete this.emptyFieldTimeouts[sku];
@@ -610,7 +687,6 @@
           this.updateSummary();
         },
         scrollToTop() {
-          // Desplazar al inicio de la página
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         async loadProductsFromJSON() {
@@ -634,21 +710,16 @@
               CATEGORIA: product.CATEGORIA || 'BATIDOS',
               quantity: parseInt(product.quantity, 10) || 0
             })));
-            console.log('Productos cargados:', this.products);
           } catch (error) {
             console.error("Error al cargar products.json:", error);
           }
         },
         openModal() {
-          console.log('Abriendo modal, showModal antes:', this.showModal);
           this.showModal = true;
           history.pushState({ modalOpen: true }, document.title, window.location.href);
-          console.log('showModal después:', this.showModal);
         },
         closeModal() {
-          console.log('Cerrando modal');
           this.showModal = false;
-          // Cancelar todos los temporizadores al cerrar el modal
           Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
             clearTimeout(this.emptyFieldTimeouts[sku]);
             delete this.emptyFieldTimeouts[sku];
@@ -678,7 +749,6 @@
       beforeUnmount() {
         window.removeEventListener('popstate', this.handleBackNavigation);
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        // Limpiar todos los temporizadores al desmontar el componente
         Object.keys(this.emptyFieldTimeouts).forEach((sku) => {
           clearTimeout(this.emptyFieldTimeouts[sku]);
         });
